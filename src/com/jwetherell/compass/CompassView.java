@@ -11,7 +11,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 
@@ -21,8 +20,7 @@ import android.view.View;
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
 public class CompassView extends View {
-	private static final String TAG = "CompassView";
-    private static final AtomicBoolean drawing = new AtomicBoolean(false);
+	private static final AtomicBoolean drawing = new AtomicBoolean(false);
 
     private static Matrix matrix = null;
     private static Bitmap bitmap = null;
@@ -53,8 +51,7 @@ public class CompassView extends View {
         MixState state = GlobalData.getState();
         float bearing = state.bearing;
         float heading = 360-bearing;
-        Log.i(TAG, "heading="+heading+" canvas.width="+canvas.getWidth()+" canvas.height="+canvas.getHeight());
-        
+
         int bitmapWidth = bitmap.getWidth();
         int bitmapHeight = bitmap.getHeight();
         
