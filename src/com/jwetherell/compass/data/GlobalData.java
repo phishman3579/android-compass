@@ -7,12 +7,17 @@ package com.jwetherell.compass.data;
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
 public abstract class GlobalData {
+	private static final Object lock = new Object();
     private static int bearing = 0;
 
     public static void setBearing(int bearing) {
-        GlobalData.bearing = bearing;
+    	synchronized (lock) {
+    		GlobalData.bearing = bearing;
+    	}
     }
     public static int getBearing() {
-        return bearing;
+    	synchronized (lock) {
+    		return bearing;
+    	}
     }
 }

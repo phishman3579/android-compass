@@ -30,16 +30,16 @@ public class SensorsActivity extends Activity implements SensorEventListener {
     private static final float orientation[] = new float[3]; //yaw, pitch, roll
     
     private static int bearingIdx = 0;
-    private static final double[] bearingArray = new double[5];
+    private static final float[] bearingArray = new float[3];
 
     private static SensorManager sensorMgr = null;
     private static List<Sensor> sensors = null;
     private static Sensor sensorGrav = null;
     private static Sensor sensorMag = null;
 
-    private static double bearing = 0d;
-    private static int intBearing = 0;
-    private static int intSmoothedBearing = 0;
+    private static int bearing = 0;
+    private static float floatBearing = 0;
+    private static float floatSmoothedBearing = 0;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -111,34 +111,26 @@ public class SensorsActivity extends Activity implements SensorEventListener {
 
         //Get rotation and inclination matrices given the gravity and geomagnetic matrices
         SensorManager.getRotationMatrix(R, I, grav, mag);
-
         SensorManager.getOrientation(R, orientation);
-        bearing = -Math.toDegrees(orientation[0]);
-        if (bearing<0) bearing+=360;
-        intBearing = (int)bearing;
+        floatBearing = orientation[0];
 
         int smoothCnt = 0;
-        double smooth = 0d;
-        double temp = 0d;
+        float smooth = 0f;
         for (int i = 0; i < bearingArray.length; i++) {
-        	temp = bearingArray[i];
-        	if (temp>0) {
-        		smooth += temp;
-        		smoothCnt++;
-        	}
+        	smooth += bearingArray[i];
+        	smoothCnt++;
         }
-        intSmoothedBearing = (smoothCnt>0)?(int)(smooth/smoothCnt):0;
+        floatSmoothedBearing = (smoothCnt>0)?(smooth/smoothCnt):0f;
 
         if (bearingIdx == bearingArray.length) bearingIdx = 0;
-        bearingArray[bearingIdx] = bearing;
+        bearingArray[bearingIdx] = floatBearing;
         bearingIdx++;
+
+        bearing = (int)Math.toDegrees(floatSmoothedBearing); //0 to 180 and 0 to -180
+        if (bearing<0) bearing+=360; //adjust to 0-360
         
-        int diff = Math.abs(intBearing - intSmoothedBearing);
-        if (diff>=355) diff-=355; //Swinging between 0 and 360 or vice versa
-        if (smoothCnt==0 || diff<10) {      
-        	GlobalData.setBearing(intSmoothedBearing);
-        }
-        
+        GlobalData.setBearing(bearing);
+
         computing.set(false);
     }
 

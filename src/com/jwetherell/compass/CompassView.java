@@ -54,7 +54,7 @@ public class CompassView extends View {
         
         int canvasWidth = canvas.getWidth();
         int canvasHeight = canvas.getHeight();
-        if (bitmapWidth>canvasWidth || bitmapHeight>canvasHeight) {        
+        if (bitmap.getWidth()>canvasWidth || bitmap.getHeight()>canvasHeight) {        
             //Resize the bitmap to the size of the canvas
             bitmap = Bitmap.createScaledBitmap(bitmap, (int)(bitmapWidth*.9), (int)(bitmapHeight*.9), true);
         }
@@ -68,9 +68,11 @@ public class CompassView extends View {
         int centerX = canvasX-bitmapX;
         int centerY = canvasY-bitmapY;
         
+        int rotation = (int)(360-bearing);
+        
         matrix.reset();
-        //Rotate the bitmap around it's center point
-        matrix.setRotate(bearing, bitmapX, bitmapY);
+        //Rotate the bitmap around it's center point so it's always pointing north
+        matrix.setRotate(rotation, bitmapX, bitmapY);
         //Move the bitmap to the center of the canvas
         matrix.postTranslate(centerX, centerY);
 
