@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -20,6 +21,7 @@ import android.view.View;
  */
 public class CompassView extends View {
 	private static final AtomicBoolean drawing = new AtomicBoolean(false);
+	private static final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private static Matrix matrix = null;
     private static Bitmap bitmap = null;
@@ -76,7 +78,7 @@ public class CompassView extends View {
         //Move the bitmap to the center of the canvas
         matrix.postTranslate(centerX, centerY);
 
-        canvas.drawBitmap(bitmap, matrix, null);
+        canvas.drawBitmap(bitmap, matrix, paint);
 
 	    drawing.set(false);
     }
