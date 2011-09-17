@@ -12,7 +12,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.util.Log;
 
 
 /**
@@ -31,13 +30,17 @@ public class SensorsActivity extends Activity implements SensorEventListener {
     private static final float orientation[] = new float[3]; //yaw, pitch, roll
     
     private static int bearingIdx = 0;
-    private static final double[] bearingArray = new double[3];
+    private static final double[] bearingArray = new double[5];
 
     private static SensorManager sensorMgr = null;
     private static List<Sensor> sensors = null;
     private static Sensor sensorGrav = null;
     private static Sensor sensorMag = null;
 
+    private static double bearing = 0d;
+    private static int intBearing = 0;
+    private static int intSmoothedBearing = 0;
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,11 +113,9 @@ public class SensorsActivity extends Activity implements SensorEventListener {
         SensorManager.getRotationMatrix(R, I, grav, mag);
 
         SensorManager.getOrientation(R, orientation);
-        double bearing = -Math.toDegrees(orientation[0]);
+        bearing = -Math.toDegrees(orientation[0]);
         if (bearing<0) bearing+=360;
-        int intBearing = (int)bearing;
-        
-        //Log.d("TAG", "bearing="+bearing);
+        intBearing = (int)bearing;
 
         int smoothCnt = 0;
         double smooth = 0d;
@@ -126,16 +127,16 @@ public class SensorsActivity extends Activity implements SensorEventListener {
         		smoothCnt++;
         	}
         }
-        int intSmoothBearing = (smoothCnt>0)?(int)(smooth/smoothCnt):0;
+        intSmoothedBearing = (smoothCnt>0)?(int)(smooth/smoothCnt):0;
 
         if (bearingIdx == bearingArray.length) bearingIdx = 0;
         bearingArray[bearingIdx] = bearing;
         bearingIdx++;
         
-        int diff = intBearing - intSmoothBearing;
-        if (smoothCnt==0 || Math.abs(diff)<2) {      
-        	//Log.d("TAG", "bearing="+intSmoothBearing);
-        	GlobalData.setBearing(intSmoothBearing);
+        int diff = Math.abs(intBearing - intSmoothedBearing);
+        if (diff>=355) diff-=355; //Swinging between 0 and 360 or vice versa
+        if (smoothCnt==0 || diff<10) {      
+        	GlobalData.setBearing(intSmoothedBearing);
         }
         
         computing.set(false);
