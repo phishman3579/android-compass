@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
-import com.jwetherell.compass.common.Matrix;
 import com.jwetherell.compass.data.GlobalData;
 
 import android.app.Activity;
@@ -13,6 +12,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.util.Log;
 
 
 /**
@@ -24,16 +24,14 @@ public class SensorsActivity extends Activity implements SensorEventListener {
     private static final Logger logger = Logger.getLogger(SensorsActivity.class.getSimpleName());    
     private static final AtomicBoolean computing = new AtomicBoolean(false); 
     
-    private static final float RTmp[] = new float[9]; //Temporary rotation matrix in Android format
-    private static final float Rot[] = new float[9]; //Final rotation matrix in Android format
-    private static final float I[] = new float[9]; //Inclination matrix
     private static final float grav[] = new float[3]; //Gravity (a.k.a accelerometer data)
     private static final float mag[] = new float[3]; //Magnetic 
-
-    private static int rHistIdx = 0;
-    private static final Matrix finalR = new Matrix();
-    private static final Matrix smoothR = new Matrix();
-    private static final Matrix histR[] = new Matrix[10];
+    private static final float R[] = new float[9]; //Rotation matrix in Android format
+    private static final float I[] = new float[9]; //Inclination matrix
+    private static final float orientation[] = new float[3]; //yaw, pitch, roll
+    
+    private static int bearingIdx = 0;
+    private static final double[] bearingArray = new double[3];
 
     private static SensorManager sensorMgr = null;
     private static List<Sensor> sensors = null;
@@ -109,31 +107,36 @@ public class SensorsActivity extends Activity implements SensorEventListener {
         }
 
         //Get rotation and inclination matrices given the gravity and geomagnetic matrices
-        SensorManager.getRotationMatrix(RTmp, I, grav, mag);
+        SensorManager.getRotationMatrix(R, I, grav, mag);
+
+        SensorManager.getOrientation(R, orientation);
+        double bearing = -Math.toDegrees(orientation[0]);
+        if (bearing<0) bearing+=360;
+        int intBearing = (int)bearing;
         
-        //Translate the rotation matrices from X and -Z (landscape)
-        SensorManager.remapCoordinateSystem(RTmp, SensorManager.AXIS_X, SensorManager.AXIS_MINUS_Z, Rot);
+        //Log.d("TAG", "bearing="+bearing);
 
-        //Convert from float[9] to Matrix
-        finalR.set(Rot[0], Rot[1], Rot[2], Rot[3], Rot[4], Rot[5], Rot[6], Rot[7], Rot[8]);
-
-        //Start to smooth the data (catch a boundary case)
-        histR[rHistIdx].set(finalR);
-        rHistIdx++;
-        if (rHistIdx >= histR.length) rHistIdx = 0;
-
-        //Zero out the smoothed rotation matrix
-        smoothR.set(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f);
-        
-        //Add the historic data
-        for (int i = 0; i < histR.length; i++) {
-            smoothR.add(histR[i]);
+        int smoothCnt = 0;
+        double smooth = 0d;
+        double temp = 0d;
+        for (int i = 0; i < bearingArray.length; i++) {
+        	temp = bearingArray[i];
+        	if (temp>0) {
+        		smooth += temp;
+        		smoothCnt++;
+        	}
         }
-        //Smooth the historic data
-        smoothR.mult(1 / (float) histR.length);
+        int intSmoothBearing = (smoothCnt>0)?(int)(smooth/smoothCnt):0;
 
-        //Set the rotation matrix (used to translate all object from lat/lon to x/y/z)
-        GlobalData.setRotationMatrix(smoothR);
+        if (bearingIdx == bearingArray.length) bearingIdx = 0;
+        bearingArray[bearingIdx] = bearing;
+        bearingIdx++;
+        
+        int diff = intBearing - intSmoothBearing;
+        if (smoothCnt==0 || Math.abs(diff)<2) {      
+        	//Log.d("TAG", "bearing="+intSmoothBearing);
+        	GlobalData.setBearing(intSmoothBearing);
+        }
         
         computing.set(false);
     }

@@ -2,7 +2,6 @@ package com.jwetherell.compass;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.jwetherell.compass.common.MixState;
 import com.jwetherell.compass.data.GlobalData;
 
 import android.content.Context;
@@ -48,9 +47,7 @@ public class CompassView extends View {
 
         if (!drawing.compareAndSet(false, true)) return; 
 
-        MixState state = GlobalData.getState();
-        float bearing = state.bearing;
-        float heading = 360-bearing;
+        float bearing = GlobalData.getBearing();
 
         int bitmapWidth = bitmap.getWidth();
         int bitmapHeight = bitmap.getHeight();
@@ -73,7 +70,7 @@ public class CompassView extends View {
         
         matrix.reset();
         //Rotate the bitmap around it's center point
-        matrix.setRotate(heading, bitmapX, bitmapY);
+        matrix.setRotate(bearing, bitmapX, bitmapY);
         //Move the bitmap to the center of the canvas
         matrix.postTranslate(centerX, centerY);
 

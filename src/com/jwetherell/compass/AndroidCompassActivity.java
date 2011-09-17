@@ -2,7 +2,6 @@ package com.jwetherell.compass;
 
 import java.util.logging.Logger;
 
-import com.jwetherell.compass.common.MixState;
 import com.jwetherell.compass.data.GlobalData;
 
 import android.hardware.Sensor;
@@ -63,13 +62,9 @@ public class AndroidCompassActivity extends SensorsActivity {
         	//Tell the compass to update it's graphics
             if (compassView!=null) compassView.postInvalidate();
         }
-        
-        //Update the pitch and bearing
-        MixState state = GlobalData.getState();
-        state.calcPitchBearing(GlobalData.getRotationMatrix());
-        
+
         //Update the direction text
-        updateText(state.bearing);
+        updateText(GlobalData.getBearing());
     }
     
     private static void updateText(float bearing) {

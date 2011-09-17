@@ -1,8 +1,5 @@
 package com.jwetherell.compass.data;
 
-import com.jwetherell.compass.common.Matrix;
-import com.jwetherell.compass.common.MixState;
-
 
 /**
  * Abstract class which should be used to set global data.
@@ -10,18 +7,12 @@ import com.jwetherell.compass.common.MixState;
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
 public abstract class GlobalData {
-    private static final MixState state = new MixState();
+    private static int bearing = 0;
 
-    private static Matrix rotationMatrix = null;
-    
-	public static MixState getState() {
-		return state;
-	}
-
-    public static void setRotationMatrix(Matrix rotationMatrix) {
-        GlobalData.rotationMatrix = rotationMatrix;
+    public static void setBearing(int bearing) {
+        GlobalData.bearing = bearing;
     }
-    public static Matrix getRotationMatrix() {
-        return rotationMatrix;
+    public static int getBearing() {
+        return bearing;
     }
 }
