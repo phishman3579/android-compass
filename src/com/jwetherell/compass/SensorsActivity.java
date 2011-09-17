@@ -126,7 +126,7 @@ public class SensorsActivity extends Activity implements SensorEventListener {
         bearingArray[bearingIdx] = floatBearing;
         bearingIdx++;
 
-        bearing = (int)Math.toDegrees(floatSmoothedBearing); //0 to 180 and 0 to -180
+        bearing = (int)Math.toDegrees(floatSmoothedBearing); //0 to 180 or 0 to -180
         if (bearing<0) bearing+=360; //adjust to 0-360
         
         GlobalData.setBearing(bearing);
