@@ -22,7 +22,9 @@ import android.view.View;
 public class CompassView extends View {
 	private static final AtomicBoolean drawing = new AtomicBoolean(false);
 	private static final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-
+	
+	private static int parentWidth = 0;
+	private static int parentHeight = 0;
     private static Matrix matrix = null;
     private static Bitmap bitmap = null;
 
@@ -41,6 +43,15 @@ public class CompassView extends View {
     private void init() {
         matrix = new Matrix();
         bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.compass_icon);
+    }
+    
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        parentWidth = MeasureSpec.getSize(widthMeasureSpec);
+        parentHeight = MeasureSpec.getSize(heightMeasureSpec);
+        setMeasuredDimension(parentWidth, parentHeight);
     }
 
     @Override
@@ -64,11 +75,11 @@ public class CompassView extends View {
         int bitmapX = bitmap.getWidth()/2;
         int bitmapY = bitmap.getHeight()/2;
         
-        int canvasX = canvas.getWidth()/2;
-        int canvasY = canvas.getHeight()/2;
+        int parentX = parentWidth/2;
+        int parentY = parentHeight/2;
         
-        int centerX = canvasX-bitmapX;
-        int centerY = canvasY-bitmapY;
+        int centerX = parentX-bitmapX;
+        int centerY = parentY-bitmapY;
         
         int rotation = (int)(360-bearing);
         
