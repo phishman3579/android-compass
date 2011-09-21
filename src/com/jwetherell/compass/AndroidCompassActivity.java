@@ -4,9 +4,12 @@ import java.util.logging.Logger;
 
 import com.jwetherell.compass.data.GlobalData;
 
+import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.view.View;
 import android.widget.TextView;
 
@@ -19,6 +22,8 @@ import android.widget.TextView;
 public class AndroidCompassActivity extends SensorsActivity {
 	private static final Logger logger = Logger.getLogger(AndroidCompassActivity.class.getSimpleName());
 
+	private static WakeLock wakeLock = null;
+	
     private static TextView text = null;
     private static View compassView = null;
 
@@ -32,6 +37,9 @@ public class AndroidCompassActivity extends SensorsActivity {
 
         text = (TextView) findViewById(R.id.text);
         compassView = findViewById(R.id.compass);
+
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "DoNotDimScreen");
     }
     
     @Override
@@ -51,7 +59,23 @@ public class AndroidCompassActivity extends SensorsActivity {
     	super.onStop();
     	logger.info("onStop()");
     }
-    
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		logger.info("onResume()");
+		
+		wakeLock.acquire();
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		logger.info("onPause()");
+		
+		wakeLock.release();
+	}
+
     @Override
     public void onSensorChanged(SensorEvent evt) {
         super.onSensorChanged(evt);
