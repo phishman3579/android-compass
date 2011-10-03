@@ -52,11 +52,17 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
     private static float floatBearing = 0;
     private static float floatSmoothedBearing = 0;
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onStart() {
         super.onStart();
@@ -96,7 +102,7 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
                     currentLocation=(hardFix);
                 }
             } catch (Exception ex) {
-                logger.info("Exception: "+ex);
+            	ex.printStackTrace();
             }
         } catch (Exception ex1) {
             try {
@@ -110,11 +116,14 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
                     locationMgr = null;
                 }
             } catch (Exception ex2) {
-                logger.info("Exception: "+ex2);
+            	ex2.printStackTrace();
             }
         }
     }
-
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onStop() {
         super.onStop();
@@ -123,26 +132,29 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
             try {
                 sensorMgr.unregisterListener(this, sensorGrav);
             } catch (Exception ex) {
-                logger.info("Exception: "+ex);
+            	ex.printStackTrace();
             }
             try {
                 sensorMgr.unregisterListener(this, sensorMag);
             } catch (Exception ex) {
-                logger.info("Exception: "+ex);
+            	ex.printStackTrace();
             }
             sensorMgr = null;
 
             try {
                 locationMgr.removeUpdates(this);
             } catch (Exception ex) {
-                logger.info("Exception: "+ex);
+            	ex.printStackTrace();
             }
             locationMgr = null;
         } catch (Exception ex) {
-            logger.info("Exception: "+ex);
+        	ex.printStackTrace();
         }
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onSensorChanged(SensorEvent evt) {
     	if (!computing.compareAndSet(false, true)) return;
@@ -188,29 +200,44 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
 
         computing.set(false);
     }
-
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         if(sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD && accuracy==SensorManager.SENSOR_STATUS_UNRELIABLE) {
             logger.info("Compass data unreliable");
         }
     }
-
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onLocationChanged(Location location) {
         currentLocation=(location);
     }
-
+    
+    /**
+     * {@inheritDoc}
+     */
 	@Override
 	public void onProviderDisabled(String provider) {
 		//Ignore
 	}
-
+    
+    /**
+     * {@inheritDoc}
+     */
 	@Override
 	public void onProviderEnabled(String provider) {
 		//Ignore
 	}
-
+    
+    /**
+     * {@inheritDoc}
+     */
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
 		//Ignore

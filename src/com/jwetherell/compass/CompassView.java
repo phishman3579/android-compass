@@ -31,20 +31,23 @@ public class CompassView extends View {
     public CompassView(Context context) {
         super(context);
         
-        init();
+        initialize();
     }    
     
     public CompassView(Context context, AttributeSet attr) {
         super(context,attr);
         
-        init();
+        initialize();
     }
     
-    private void init() {
+    private void initialize() {
         matrix = new Matrix();
         bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.compass_icon);
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -53,7 +56,10 @@ public class CompassView extends View {
         parentHeight = MeasureSpec.getSize(heightMeasureSpec);
         setMeasuredDimension(parentWidth, parentHeight);
     }
-
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onDraw(Canvas canvas) {
     	if (canvas==null) return;

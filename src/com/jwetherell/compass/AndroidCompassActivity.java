@@ -26,8 +26,10 @@ public class AndroidCompassActivity extends SensorsActivity {
 	
     private static TextView text = null;
     private static View compassView = null;
-
-    /** Called when the activity is first created. */
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,24 +44,36 @@ public class AndroidCompassActivity extends SensorsActivity {
         wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "DoNotDimScreen");
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onDestroy() {
     	super.onDestroy();
     	logger.info("onDestroy()");
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onStart() {
     	super.onStart();
     	logger.info("onStart()");
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onStop() {
     	super.onStop();
     	logger.info("onStop()");
     }
-
+    
+    /**
+     * {@inheritDoc}
+     */
 	@Override
 	public void onResume() {
 		super.onResume();
@@ -67,7 +81,10 @@ public class AndroidCompassActivity extends SensorsActivity {
 		
 		wakeLock.acquire();
 	}
-
+    
+    /**
+     * {@inheritDoc}
+     */
 	@Override
 	public void onPause() {
 		super.onPause();
@@ -75,7 +92,10 @@ public class AndroidCompassActivity extends SensorsActivity {
 		
 		wakeLock.release();
 	}
-
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onSensorChanged(SensorEvent evt) {
         super.onSensorChanged(evt);
