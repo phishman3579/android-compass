@@ -62,7 +62,7 @@ public class CompassView extends View {
      */
     @Override
     protected void onDraw(Canvas canvas) {
-    	if (canvas==null) return;
+    	if (canvas==null) throw new NullPointerException();
 
         if (!drawing.compareAndSet(false, true)) return; 
 

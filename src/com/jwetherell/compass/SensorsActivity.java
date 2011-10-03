@@ -216,6 +216,7 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
      */
     @Override
     public void onLocationChanged(Location location) {
+    	if (location==null) throw new NullPointerException();
         currentLocation=(location);
     }
     
