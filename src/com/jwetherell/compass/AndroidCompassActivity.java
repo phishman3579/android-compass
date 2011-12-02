@@ -1,7 +1,5 @@
 package com.jwetherell.compass;
 
-import java.util.logging.Logger;
-
 import com.jwetherell.compass.data.GlobalData;
 
 import android.content.Context;
@@ -10,6 +8,7 @@ import android.hardware.SensorEvent;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -20,7 +19,7 @@ import android.widget.TextView;
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
 public class AndroidCompassActivity extends SensorsActivity {
-	private static final Logger logger = Logger.getLogger(AndroidCompassActivity.class.getSimpleName());
+	private static final String TAG = "AndroidCompassActivity";
 
 	private static WakeLock wakeLock = null;
 	
@@ -33,7 +32,7 @@ public class AndroidCompassActivity extends SensorsActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        logger.info("onCreate()");
+        Log.i(TAG,"onCreate()");
 
         setContentView(R.layout.main);
 
@@ -50,7 +49,7 @@ public class AndroidCompassActivity extends SensorsActivity {
     @Override
     public void onDestroy() {
     	super.onDestroy();
-    	logger.info("onDestroy()");
+    	Log.i(TAG,"onDestroy()");
     }
     
     /**
@@ -59,7 +58,7 @@ public class AndroidCompassActivity extends SensorsActivity {
     @Override
     public void onStart() {
     	super.onStart();
-    	logger.info("onStart()");
+    	Log.i(TAG,"onStart()");
     }
     
     /**
@@ -68,7 +67,7 @@ public class AndroidCompassActivity extends SensorsActivity {
     @Override
     public void onStop() {
     	super.onStop();
-    	logger.info("onStop()");
+    	Log.i(TAG,"onStop()");
     }
     
     /**
@@ -77,7 +76,7 @@ public class AndroidCompassActivity extends SensorsActivity {
 	@Override
 	public void onResume() {
 		super.onResume();
-		logger.info("onResume()");
+		Log.i(TAG,"onResume()");
 		
 		wakeLock.acquire();
 	}
@@ -88,7 +87,7 @@ public class AndroidCompassActivity extends SensorsActivity {
 	@Override
 	public void onPause() {
 		super.onPause();
-		logger.info("onPause()");
+		Log.i(TAG,"onPause()");
 		
 		wakeLock.release();
 	}

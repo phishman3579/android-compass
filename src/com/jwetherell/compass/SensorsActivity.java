@@ -2,8 +2,8 @@ package com.jwetherell.compass;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
 
+import com.jwetherell.compass.common.LowPassFilter;
 import com.jwetherell.compass.data.GlobalData;
 
 import android.app.Activity;
@@ -17,6 +17,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 
 
 /**
@@ -25,7 +26,7 @@ import android.os.Bundle;
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
 public class SensorsActivity extends Activity implements SensorEventListener, LocationListener {
-    private static final Logger logger = Logger.getLogger(SensorsActivity.class.getSimpleName());    
+    private static final String TAG = "SensorsActivity";   
     private static final AtomicBoolean computing = new AtomicBoolean(false); 
 
     private static final int MIN_TIME = 30*1000;
@@ -33,12 +34,9 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
 
     private static final float grav[] = new float[3]; //Gravity (a.k.a accelerometer data)
     private static final float mag[] = new float[3]; //Magnetic 
-    private static final float R[] = new float[9]; //Rotation matrix in Android format
-    private static final float I[] = new float[9]; //Inclination matrix
+    private static final float temp[] = new float[9]; //Rotation matrix in Android format
     private static final float orientation[] = new float[3]; //yaw, pitch, roll
-    
-    private static int bearingIdx = 0;
-    private static final float[] bearingArray = new float[3];
+    private static float smoothed[] = new float[3];
 
     private static SensorManager sensorMgr = null;
     private static List<Sensor> sensors = null;
@@ -47,11 +45,10 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
     
     private static LocationManager locationMgr = null;
     private static Location currentLocation = null;
+    private static GeomagneticField gmf = null;
 
-    private static int bearing = 0;
     private static float floatBearing = 0;
-    private static float floatSmoothedBearing = 0;
-    
+
     /**
      * {@inheritDoc}
      */
@@ -76,8 +73,8 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
             sensors = sensorMgr.getSensorList(Sensor.TYPE_MAGNETIC_FIELD);
             if (sensors.size() > 0) sensorMag = sensors.get(0);
 
-            sensorMgr.registerListener(this, sensorGrav, SensorManager.SENSOR_DELAY_UI);
-            sensorMgr.registerListener(this, sensorMag, SensorManager.SENSOR_DELAY_UI);
+            sensorMgr.registerListener(this, sensorGrav, SensorManager.SENSOR_DELAY_NORMAL);
+            sensorMgr.registerListener(this, sensorMag, SensorManager.SENSOR_DELAY_NORMAL);
 
             locationMgr = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             locationMgr.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
@@ -101,6 +98,7 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
                 } catch (Exception ex2) {
                     currentLocation=(hardFix);
                 }
+                onLocationChanged(currentLocation);
             } catch (Exception ex) {
             	ex.printStackTrace();
             }
@@ -151,52 +149,41 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
         	ex.printStackTrace();
         }
     }
-    
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public void onSensorChanged(SensorEvent evt) {
+    public void onSensorChanged(SensorEvent event) {
     	if (!computing.compareAndSet(false, true)) return;
     	
-        if (evt.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            grav[0] = evt.values[0];
-            grav[1] = evt.values[1];
-            grav[2] = evt.values[2];
-        } else if (evt.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            mag[0] = evt.values[0];
-            mag[1] = evt.values[1];
-            mag[2] = evt.values[2];
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            smoothed = LowPassFilter.filter(event.values, grav);
+            grav[0] = smoothed[0];
+            grav[1] = smoothed[1];
+            grav[2] = smoothed[2];
+        } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            smoothed = LowPassFilter.filter(event.values, mag);
+            mag[0] = smoothed[0];
+            mag[1] = smoothed[1];
+            mag[2] = smoothed[2];
         }
-
-        //Get rotation and inclination matrices given the gravity and geomagnetic matrices
-        SensorManager.getRotationMatrix(R, I, grav, mag);
-        SensorManager.getOrientation(R, orientation);
-        floatBearing = orientation[0];
         
-        int smoothCnt = 0;
-        float smooth = 0f;
-        for (int i = 0; i < bearingArray.length; i++) {
-        	smooth += bearingArray[i];
-        	smoothCnt++;
-        }
-        floatSmoothedBearing = (smoothCnt>0)?(smooth/smoothCnt):0f;
+        //Get rotation matrix given the gravity and geomagnetic matrices
+        SensorManager.getRotationMatrix(temp, null, grav, mag);
+        SensorManager.getOrientation(temp, orientation);
+        floatBearing = orientation[0];
 
-        if (bearingIdx == bearingArray.length) bearingIdx = 0;
-        bearingArray[bearingIdx] = floatBearing;
-        bearingIdx++;
-
-        bearing = (int)Math.toDegrees(floatSmoothedBearing); //degrees east of true north (180 to -180)
-        if (bearing<0) bearing+=360; //adjust to 0-360
+        //Convert from degrees to radians
+        floatBearing = (int)Math.toDegrees(floatBearing); //degrees east of true north (180 to -180)
         
         //Compensate for the difference between true north and magnetic north
-        GeomagneticField gmf = new GeomagneticField((float) currentLocation.getLatitude(), 
-                                                    (float) currentLocation.getLongitude(),
-                                                    (float) currentLocation.getAltitude(), 
-                                                    System.currentTimeMillis());
-        floatBearing+=gmf.getDeclination();
+        if (gmf!=null) floatBearing += gmf.getDeclination();
         
-        GlobalData.setBearing(bearing);
+        //adjust to 0-360
+        if (floatBearing<0) floatBearing+=360;
+        
+        GlobalData.setBearing((int)floatBearing);
 
         computing.set(false);
     }
@@ -207,7 +194,7 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         if(sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD && accuracy==SensorManager.SENSOR_STATUS_UNRELIABLE) {
-            logger.info("Compass data unreliable");
+            Log.w(TAG,"Compass data unreliable");
         }
     }
     
@@ -218,6 +205,10 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
     public void onLocationChanged(Location location) {
     	if (location==null) throw new NullPointerException();
         currentLocation=(location);
+        gmf = new GeomagneticField((float) currentLocation.getLatitude(), 
+                                   (float) currentLocation.getLongitude(),
+                                   (float) currentLocation.getAltitude(), 
+                                   System.currentTimeMillis());
     }
     
     /**
