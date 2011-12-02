@@ -47,7 +47,7 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
     private static Location currentLocation = null;
     private static GeomagneticField gmf = null;
 
-    private static float floatBearing = 0;
+    private static double floatBearing = 0;
 
     /**
      * {@inheritDoc}
@@ -175,7 +175,7 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
         floatBearing = orientation[0];
 
         //Convert from degrees to radians
-        floatBearing = (int)Math.toDegrees(floatBearing); //degrees east of true north (180 to -180)
+        floatBearing = Math.toDegrees(floatBearing); //degrees east of true north (180 to -180)
         
         //Compensate for the difference between true north and magnetic north
         if (gmf!=null) floatBearing += gmf.getDeclination();
