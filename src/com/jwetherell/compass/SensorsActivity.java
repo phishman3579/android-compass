@@ -34,8 +34,8 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
 
     private static final float grav[] = new float[3]; //Gravity (a.k.a accelerometer data)
     private static final float mag[] = new float[3]; //Magnetic 
-    private static final float temp[] = new float[9]; //Rotation matrix in Android format
-    private static final float orientation[] = new float[3]; //yaw, pitch, roll
+    private static final float rotation[] = new float[9]; //Rotation matrix in Android format
+    private static final float orientation[] = new float[3]; //azimuth, pitch, roll
     private static float smoothed[] = new float[3];
 
     private static SensorManager sensorMgr = null;
@@ -170,11 +170,11 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
         }
         
         //Get rotation matrix given the gravity and geomagnetic matrices
-        SensorManager.getRotationMatrix(temp, null, grav, mag);
-        SensorManager.getOrientation(temp, orientation);
+        SensorManager.getRotationMatrix(rotation, null, grav, mag);
+        SensorManager.getOrientation(rotation, orientation);
         floatBearing = orientation[0];
 
-        //Convert from degrees to radians
+        //Convert from radians to degrees
         floatBearing = Math.toDegrees(floatBearing); //degrees east of true north (180 to -180)
         
         //Compensate for the difference between true north and magnetic north
