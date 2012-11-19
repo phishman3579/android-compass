@@ -26,23 +26,27 @@ import android.util.Log;
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
 public class SensorsActivity extends Activity implements SensorEventListener, LocationListener {
-    private static final String TAG = "SensorsActivity";   
-    private static final AtomicBoolean computing = new AtomicBoolean(false); 
 
-    private static final int MIN_TIME = 30*1000;
+    private static final String TAG = "SensorsActivity";
+    private static final AtomicBoolean computing = new AtomicBoolean(false);
+
+    private static final int MIN_TIME = 30 * 1000;
     private static final int MIN_DISTANCE = 10;
 
-    private static final float grav[] = new float[3]; //Gravity (a.k.a accelerometer data)
-    private static final float mag[] = new float[3]; //Magnetic 
-    private static final float rotation[] = new float[9]; //Rotation matrix in Android format
-    private static final float orientation[] = new float[3]; //azimuth, pitch, roll
+    private static final float grav[] = new float[3]; // Gravity (a.k.a
+                                                      // accelerometer data)
+    private static final float mag[] = new float[3]; // Magnetic
+    private static final float rotation[] = new float[9]; // Rotation matrix in
+                                                          // Android format
+    private static final float orientation[] = new float[3]; // azimuth, pitch,
+                                                             // roll
     private static float smoothed[] = new float[3];
 
     private static SensorManager sensorMgr = null;
     private static List<Sensor> sensors = null;
     private static Sensor sensorGrav = null;
     private static Sensor sensorMag = null;
-    
+
     private static LocationManager locationMgr = null;
     private static Location currentLocation = null;
     private static GeomagneticField gmf = null;
@@ -56,14 +60,14 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-    
+
     /**
      * {@inheritDoc}
      */
     @Override
     public void onStart() {
         super.onStart();
-        
+
         try {
             sensorMgr = (SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -80,27 +84,24 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
             locationMgr.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
 
             try {
-                /*defaulting to our place*/
+                /* defaulting to our place */
                 Location hardFix = new Location("ATL");
                 hardFix.setLatitude(39.931261);
                 hardFix.setLongitude(-75.051267);
                 hardFix.setAltitude(1);
 
                 try {
-                    Location gps=locationMgr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                    Location network=locationMgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                    if(gps!=null)
-                    	currentLocation=(gps);
-                    else if (network!=null)
-                    	currentLocation=(network);
-                    else
-                    	currentLocation=(hardFix);
+                    Location gps = locationMgr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    Location network = locationMgr.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                    if (gps != null) currentLocation = (gps);
+                    else if (network != null) currentLocation = (network);
+                    else currentLocation = (hardFix);
                 } catch (Exception ex2) {
-                    currentLocation=(hardFix);
+                    currentLocation = (hardFix);
                 }
                 onLocationChanged(currentLocation);
             } catch (Exception ex) {
-            	ex.printStackTrace();
+                ex.printStackTrace();
             }
         } catch (Exception ex1) {
             try {
@@ -114,11 +115,11 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
                     locationMgr = null;
                 }
             } catch (Exception ex2) {
-            	ex2.printStackTrace();
+                ex2.printStackTrace();
             }
         }
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -130,23 +131,23 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
             try {
                 sensorMgr.unregisterListener(this, sensorGrav);
             } catch (Exception ex) {
-            	ex.printStackTrace();
+                ex.printStackTrace();
             }
             try {
                 sensorMgr.unregisterListener(this, sensorMag);
             } catch (Exception ex) {
-            	ex.printStackTrace();
+                ex.printStackTrace();
             }
             sensorMgr = null;
 
             try {
                 locationMgr.removeUpdates(this);
             } catch (Exception ex) {
-            	ex.printStackTrace();
+                ex.printStackTrace();
             }
             locationMgr = null;
         } catch (Exception ex) {
-        	ex.printStackTrace();
+            ex.printStackTrace();
         }
     }
 
@@ -155,8 +156,8 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
      */
     @Override
     public void onSensorChanged(SensorEvent event) {
-    	if (!computing.compareAndSet(false, true)) return;
-    	
+        if (!computing.compareAndSet(false, true)) return;
+
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             smoothed = LowPassFilter.filter(event.values, grav);
             grav[0] = smoothed[0];
@@ -168,70 +169,69 @@ public class SensorsActivity extends Activity implements SensorEventListener, Lo
             mag[1] = smoothed[1];
             mag[2] = smoothed[2];
         }
-        
-        //Get rotation matrix given the gravity and geomagnetic matrices
+
+        // Get rotation matrix given the gravity and geomagnetic matrices
         SensorManager.getRotationMatrix(rotation, null, grav, mag);
         SensorManager.getOrientation(rotation, orientation);
         floatBearing = orientation[0];
 
-        //Convert from radians to degrees
-        floatBearing = Math.toDegrees(floatBearing); //degrees east of true north (180 to -180)
-        
-        //Compensate for the difference between true north and magnetic north
-        if (gmf!=null) floatBearing += gmf.getDeclination();
-        
-        //adjust to 0-360
-        if (floatBearing<0) floatBearing+=360;
-        
-        GlobalData.setBearing((int)floatBearing);
+        // Convert from radians to degrees
+        floatBearing = Math.toDegrees(floatBearing); // degrees east of true
+                                                     // north (180 to -180)
+
+        // Compensate for the difference between true north and magnetic north
+        if (gmf != null) floatBearing += gmf.getDeclination();
+
+        // adjust to 0-360
+        if (floatBearing < 0) floatBearing += 360;
+
+        GlobalData.setBearing((int) floatBearing);
 
         computing.set(false);
     }
-    
+
     /**
      * {@inheritDoc}
      */
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        if(sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD && accuracy==SensorManager.SENSOR_STATUS_UNRELIABLE) {
-            Log.w(TAG,"Compass data unreliable");
+        if (sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD && accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) {
+            Log.w(TAG, "Compass data unreliable");
         }
     }
-    
+
     /**
      * {@inheritDoc}
      */
     @Override
     public void onLocationChanged(Location location) {
-    	if (location==null) throw new NullPointerException();
-        currentLocation=(location);
-        gmf = new GeomagneticField((float) currentLocation.getLatitude(), 
-                                   (float) currentLocation.getLongitude(),
-                                   (float) currentLocation.getAltitude(), 
-                                   System.currentTimeMillis());
+        if (location == null) throw new NullPointerException();
+        currentLocation = (location);
+        gmf = new GeomagneticField((float) currentLocation.getLatitude(), (float) currentLocation.getLongitude(), (float) currentLocation.getAltitude(),
+                System.currentTimeMillis());
     }
-    
+
     /**
      * {@inheritDoc}
      */
-	@Override
-	public void onProviderDisabled(String provider) {
-		//Ignore
-	}
-    
+    @Override
+    public void onProviderDisabled(String provider) {
+        // Ignore
+    }
+
     /**
      * {@inheritDoc}
      */
-	@Override
-	public void onProviderEnabled(String provider) {
-		//Ignore
-	}
-    
+    @Override
+    public void onProviderEnabled(String provider) {
+        // Ignore
+    }
+
     /**
      * {@inheritDoc}
      */
-	@Override
-	public void onStatusChanged(String provider, int status, Bundle extras) {
-		//Ignore
-	}
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+        // Ignore
+    }
 }
