@@ -8,10 +8,10 @@ Android Sensor Based Compass
 An Android implementation of a magnetic compass.
 
 * Created by Justin Wetherell
-* google: http://code.google.com/p/android-compass
-* github: http://github.com/phishman3579/android-compass
-* linkedIn: http://www.linkedin.com/in/phishman3579
-* e-mail: phishman3579@gmail.com
+* Google: http://code.google.com/p/android-compass
+* Github: http://github.com/phishman3579/android-compass
+* LinkedIn: http://www.linkedin.com/in/phishman3579
+* E-mail: phishman3579@gmail.com
 * Twitter: http://twitter.com/phishman3579
 
 ## Details
