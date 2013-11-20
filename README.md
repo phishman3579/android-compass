@@ -12,7 +12,7 @@ An Android implementation of a magnetic compass.
 * github: http://github.com/phishman3579/android-compass
 * linkedIn: http://www.linkedin.com/in/phishman3579
 * e-mail: phishman3579@gmail.com
-* Twitter: @phishman3579
+* Twitter: http://twitter.com/phishman3579
 
 ## Details
 
