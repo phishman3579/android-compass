@@ -18,3 +18,8 @@ An Android implementation of a magnetic compass.
 
 This App uses your location information (to determine true magnetic north) and the sensor data to determine your current heading and display both a rotating compass rose and your heading in text form.
 
+## Support me with a donation
+<script async="async" src="https://www.paypalobjects.com/js/external/paypal-button.min.js?merchant=phishman3579@gmail.com" 
+    data-button="donate" 
+    data-name="Support open source project"
+></script>
